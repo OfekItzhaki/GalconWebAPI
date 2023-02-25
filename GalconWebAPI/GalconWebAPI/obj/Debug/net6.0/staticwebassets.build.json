@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "gSRGIjMwAwfcGtOslk3K0fR6E9KErG7Ncex4j42ouP8=",
+  "Source": "GalconWebAPI",
+  "BasePath": "_content/GalconWebAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

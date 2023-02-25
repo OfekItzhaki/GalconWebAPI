@@ -1,0 +1,16 @@
+USE [master]
+GO
+CREATE LOGIN [GalconLogin] WITH PASSWORD=N'GalconLogin', DEFAULT_DATABASE=[GalconDB], CHECK_EXPIRATION=OFF, CHECK_POLICY=OFF
+GO
+USE [GalconDB]
+GO
+CREATE USER [GalconLogin] FOR LOGIN [GalconLogin]
+GO
+USE [GalconDB]
+GO
+ALTER USER [GalconLogin] WITH DEFAULT_SCHEMA=[dbo]
+GO
+USE [GalconDB]
+GO
+ALTER ROLE [db_owner] ADD MEMBER [GalconLogin]
+GO
