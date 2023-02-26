@@ -19,6 +19,7 @@ CREATE TABLE dbo.Dyn_User
 		 Tel						varchar(15)			NOT NULL, 
 		 Email						varchar(320)		NOT NULL, 
 		 EmailConfirmed				bit					NOT NULL,
+		 IsActive					bit					NOT NULL,
 
 		 CONSTRAINT PK_Dyn_User_Id PRIMARY KEY CLUSTERED(Id)
 	);
@@ -37,8 +38,8 @@ DELETE FROM dbo.Dyn_User;
 USE [GalconDB]
 GO
 CREATE OR ALTER PROCEDURE dbo.Dyn_User_Get
-		@UserId		varchar(20)	= NULL,
-		@UserName	varchar(20) = NULL,
+		@UserId		varchar(20)	 = NULL,
+		@UserName	varchar(20)  = NULL,
 		@Tel		varchar(15)  = NULL,
 		@Email		varchar(320) = NULL
 AS
@@ -47,6 +48,10 @@ AS
 			PRINT 'First Statement in the TRY block'
 
 			SELECT	UserId,
+					UserName,				
+					HashPassWord,			
+					LastPasswordUpdatedTime,
+					PasswordExpirationTime,	
 					UserRole,
 					CreatedTime,
 					LastUpdatedTime,
@@ -54,7 +59,8 @@ AS
 					LastName,
 					Tel,
 					Email,
-					EmailConfirmed
+					EmailConfirmed,
+					IsActive
 
 			FROM	dbo.Dyn_User 
 			WHERE   UserId	= @UserId
@@ -85,7 +91,8 @@ CREATE OR ALTER PROCEDURE dbo.Dyn_User_Insert
 	@LastName					varchar(30),
     @Tel						varchar(15),
 	@Email						varchar(320),
-	@EmailConfirmed				bit
+	@EmailConfirmed				bit,
+	@IsActive					bit
 AS
 	PRINT 'BEFORE TRY'
 	BEGIN TRY
@@ -105,7 +112,8 @@ AS
 						LastName,
 						Tel,
 						Email,
-						EmailConfirmed)
+						EmailConfirmed,
+						IsActive)
 
 			VALUES	   (@UserId,
 						@UserName,
@@ -119,7 +127,8 @@ AS
 						@LastName,
 						@Tel,
 						@Email,
-						@EmailConfirmed)
+						@EmailConfirmed,
+						@IsActive)
 
 			PRINT 'Last Statement in the TRY block'
 		COMMIT TRAN
@@ -138,45 +147,45 @@ USE [GalconDB]
 GO
 CREATE OR ALTER PROCEDURE dbo.Dyn_User_Update
 	@UserId						varchar(20),
+	@UserName					varchar(20),
+	@HashPassWord				varchar(64),
+	@OldPassword				varchar(64) = NULL,
+	@LastPasswordUpdatedTime	dateTime,
+	@PasswordExpirationTime		dateTime,
 	@UserRole					int,
-	@OldPassword				varchar(64),
-	@NewPassword				varchar(64),
-	@LastPasswordUpdatedTime	datetime,
-	@PasswordExpirationTime		datetime,
-	@CreatedTime				dateTime,
     @LastUpdatedTime			dateTime,
     @FirstName					varchar(30),
 	@LastName					varchar(30),
     @Tel						varchar(15),
 	@Email						varchar(320),
-	@EmailConfirmed				bit
+	@EmailConfirmed				bit,
+	@IsActive					bit
 AS
 	PRINT 'BEFORE TRY'
 	BEGIN TRY
-		BEGIN TRAN
 			PRINT 'First Statement in the TRY block'
 
 			UPDATE	dbo.Dyn_User
-			SET		UserRole		= @UserRole,
-					CreatedTime		= @CreatedTime,
-					LastUpdatedTime = @LastUpdatedTime,
-					UserId			= @UserId,
-					FirstName		= @FirstName,
-					LastName		= @LastName,
-					Tel				= @Tel,
-					Email			= @Email
+			SET		UserName				= @UserName,
+					HashPassWord			= @HashPassWord,
+					LastPasswordUpdatedTime = @LastPasswordUpdatedTime,
+					PasswordExpirationTime	=  @PasswordExpirationTime,
+					UserRole				= @UserRole,
+					LastUpdatedTime			= @LastUpdatedTime,
+					FirstName				= @FirstName,
+					LastName				= @LastName,
+					Tel						= @Tel,
+					Email					= @Email,
+					EmailConfirmed			= @EmailConfirmed,
+					IsActive				= @IsActive
 
 			WHERE	UserId = @UserId
+			AND		(@OldPassword IS NULL OR (@OldPassword IS NOT NULL AND HashPassWord = @OldPassword))
 
 			PRINT 'Last Statement in the TRY block'
-		COMMIT TRAN
 	END TRY
 	BEGIN CATCH
 		PRINT('Error! Cannot Update a NULL Value into the "UserData" table')
-			IF(@@TRANCOUNT > 0)
-				ROLLBACK TRAN;
-
-			THROW; -- raise error to the client
 	END CATCH
 	PRINT 'After END CATCH'
 GO

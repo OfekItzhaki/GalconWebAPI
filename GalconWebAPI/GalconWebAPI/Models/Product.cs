@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-
+﻿
 namespace GalconWebAPI.Models
 {
     public class Product
@@ -17,32 +16,32 @@ namespace GalconWebAPI.Models
             ProductPrice = productPrice;
         }
 
-        public Product(JObject data)
-        {
-            int tmp;
-            if (!data.Children().Contains("ProductId"))
-            {
-                throw new Exception("Parameter 'ProductId' missing");
-            }
-            ProductId = int.TryParse(data["ProductId"].ToString(), out tmp) ? tmp : throw new Exception("Invalid 'ProductId' value");
+        //public Product(JObject data)
+        //{
+        //    int tmp;
+        //    if (!data.Children().Contains("ProductId"))
+        //    {
+        //        throw new Exception("Parameter 'ProductId' missing");
+        //    }
+        //    ProductId = int.TryParse(data["ProductId"].ToString(), out tmp) ? tmp : throw new Exception("Invalid 'ProductId' value");
 
-            if (!data.Children().Contains("ProductName"))
-            {
-                throw new Exception("Parameter 'ProductName' missing");
-            }
-            ProductName = data["ProductName"].ToString();
+        //    if (!data.Children().Contains("ProductName"))
+        //    {
+        //        throw new Exception("Parameter 'ProductName' missing");
+        //    }
+        //    ProductName = data["ProductName"].ToString();
 
-            if (!data.Children().Contains("ProductDescription"))
-            {
-                throw new Exception("Parameter 'ProductDescription' missing");
-            }
-            ProductDescription = data["ProductDescription"].ToString();
+        //    if (!data.Children().Contains("ProductDescription"))
+        //    {
+        //        throw new Exception("Parameter 'ProductDescription' missing");
+        //    }
+        //    ProductDescription = data["ProductDescription"].ToString();
 
-            if (!data.Children().Contains("ProductPrice"))
-            {
-                throw new Exception("Parameter 'ProductPrice' missing");
-            }
-            ProductPrice = int.TryParse(data["ProductPrice"].ToString(), out tmp) ? tmp : throw new Exception("Invalid 'ProductPrice' value");
-        }
+        //    if (!data.Children().Contains("ProductPrice"))
+        //    {
+        //        throw new Exception("Parameter 'ProductPrice' missing");
+        //    }
+        //    ProductPrice = int.TryParse(data["ProductPrice"].ToString(), out tmp) ? tmp : throw new Exception("Invalid 'ProductPrice' value");
+        //}
     }
 }

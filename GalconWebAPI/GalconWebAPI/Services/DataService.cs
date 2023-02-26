@@ -37,8 +37,8 @@ namespace GalconWebAPI.Services
                         return state;
                     else
                     {
-                        if (email == null) email = string.Empty;
-                        if (userName == null) userName = string.Empty;
+                        if (string.IsNullOrEmpty(email)) email = string.Empty;
+                        if (string.IsNullOrEmpty(userName)) userName = string.Empty;
                     }
                     con.Open();
                 }
@@ -101,6 +101,7 @@ namespace GalconWebAPI.Services
                     cmd.Parameters.Add("@Tel", SqlDbType.VarChar).Value = user.Tel;
                     cmd.Parameters.Add("@Email", SqlDbType.VarChar).Value = user.Email;
                     cmd.Parameters.Add("@EmailConfirmed", SqlDbType.Bit).Value = user.EmailConfirmed;
+                    cmd.Parameters.Add("@IsActive", SqlDbType.Bit).Value = user.IsActive;
 
                     try
                     {
@@ -120,8 +121,6 @@ namespace GalconWebAPI.Services
 
         public string GetOrdersSum(string userId, DateTime from, DateTime to)
         {
-            var result = "";
-
             using (SqlConnection con = new SqlConnection(_config.GetConnectionString("DbConnectionString")))
             {
                 try
@@ -135,6 +134,8 @@ namespace GalconWebAPI.Services
 
                 using (SqlCommand cmd = new SqlCommand("SP_GetOrdersSum", con))
                 {
+                    var result = "";
+
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add($"@UserId", SqlDbType.VarChar).Value = userId;
                     cmd.Parameters.Add($"@FromDate", SqlDbType.DateTime).Value = from;
@@ -142,30 +143,29 @@ namespace GalconWebAPI.Services
 
                     try
                     {
-                        //var result = cmd.ExecuteScalar();
-                        //cmd.Dispose();
-                        //con.Close();
-
-                        //if (result == null) return orderSum;
-                        //else orderSum = $"The orders sum for user id {userId} is: {result.ToString()}";
-
-                        var reader = cmd.ExecuteReader();
-
-                        var orderSum = 0;
-                        while (reader.Read())
-                        {
-                            var value = reader.GetValue("TotalPrice").ToString();
-                            if (!string.IsNullOrEmpty(value))
-                            {
-                                orderSum += int.Parse(value);
-                            }
-
-                        }
-                        reader.Close();
+                        var orderSum = Convert.ToInt32(cmd.ExecuteScalar());
+                        result = $"The orders sum for user id {userId} is: {orderSum}";
                         cmd.Dispose();
                         con.Close();
 
-                        if (orderSum > 0) result = $"The orders sum for user id {userId} is: {orderSum}";
+                        //var reader = cmd.ExecuteReader();
+
+                        //var orderSum = 0;
+                        //while (reader.Read())
+                        //{
+                        //    var value = reader.GetValue("TotalPrice").ToString();
+                        //    if (!string.IsNullOrEmpty(value))
+                        //    {
+                        //        orderSum += int.Parse(value);
+                        //    }
+
+                        //}
+                        //reader.Close();
+                        //cmd.Dispose();
+                        //con.Close();
+
+                        //if (orderSum > 0) result = $"The orders sum for user id {userId} is: {orderSum}";
+                        return result;
 
                     }
                     catch (Exception err)
@@ -173,8 +173,6 @@ namespace GalconWebAPI.Services
                         throw new Exception("Error: Invalid params/No data was received/User already exists");
                     }
                 }
-
-                return result;
             }
         }
 
@@ -221,15 +219,16 @@ namespace GalconWebAPI.Services
                                 reader.GetValue("UserName").ToString(),
                                 reader.GetValue("HashPassword").ToString(),
                                 DateTime.Parse(reader.GetValue("LastPasswordUpdatedTime").ToString()),
-                                DateTime.Parse(reader.GetValue("PasswordExpirationDate").ToString()),
-                                int.Parse(reader.GetValue("UserRole").ToString()),
+                                DateTime.Parse(reader.GetValue("PasswordExpirationTime").ToString()),
+                                (Role)int.Parse(reader.GetValue("UserRole").ToString()),
                                 DateTime.Parse(reader.GetValue("CreatedTime").ToString()),
                                 DateTime.Parse(reader.GetValue("LastUpdatedTime").ToString()),
                                 reader.GetValue("FirstName").ToString(),
                                 reader.GetValue("LastName").ToString(),
                                 reader.GetValue("Tel").ToString(),
                                 reader.GetValue("Email").ToString(),
-                                bool.Parse(reader.GetValue("EmailConfirmed").ToString())
+                                bool.Parse(reader.GetValue("EmailConfirmed").ToString()),
+                                bool.Parse(reader.GetValue("IsActive").ToString())
                             );
 
                         }
@@ -246,7 +245,7 @@ namespace GalconWebAPI.Services
             }
         }
 
-        public List<User> GetUsersByRole(int userRole)
+        public List<User> GetUsersByRole(Role userRole)
         {
             var users = new List<User>();
 
@@ -264,7 +263,7 @@ namespace GalconWebAPI.Services
                 using (SqlCommand cmd = new SqlCommand("SP_GetUsersByRole", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add("@UserRole", SqlDbType.Int).Value = userRole;
+                    cmd.Parameters.Add("@UserRole", SqlDbType.Int).Value = (int)userRole;
 
                     try
                     {
@@ -280,14 +279,15 @@ namespace GalconWebAPI.Services
                                 reader.GetValue("HashPassword").ToString(),
                                 DateTime.Parse(reader.GetValue("LastPasswordUpdatedTime").ToString()),
                                 DateTime.Parse(reader.GetValue("PasswordExpirationTime").ToString()),
-                                int.Parse(reader.GetValue("UserRole").ToString()),
+                                (Role)int.Parse(reader.GetValue("UserRole").ToString()),
                                 DateTime.Parse(reader.GetValue("CreatedTime").ToString()),
                                 DateTime.Parse(reader.GetValue("LastUpdatedTime").ToString()),
                                 reader.GetValue("FirstName").ToString(),
                                 reader.GetValue("LastName").ToString(),
                                 reader.GetValue("Tel").ToString(),
                                 reader.GetValue("Email").ToString(),
-                                bool.Parse(reader.GetValue("EmailConfirmed").ToString())
+                                bool.Parse(reader.GetValue("EmailConfirmed").ToString()),
+                                bool.Parse(reader.GetValue("IsActive").ToString())
                             );
 
                             users.Add(user);
@@ -321,7 +321,7 @@ namespace GalconWebAPI.Services
                     throw new Exception("Failed to connect to DB.");
                 }
 
-                using (SqlCommand cmd = new SqlCommand("Dyn_UserOrders_Get", con))
+                using (SqlCommand cmd = new SqlCommand("SP_GetOrders", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add("@UserId", SqlDbType.VarChar).Value = userId;
@@ -337,7 +337,8 @@ namespace GalconWebAPI.Services
                                 reader.GetValue("OrderName").ToString(),
                                 int.Parse(reader.GetValue("UserId").ToString()),
                                 DateTime.Parse(reader.GetValue("OrderDate").ToString()),
-                                int.Parse(reader.GetValue("TotalPrice").ToString())
+                                int.Parse(reader.GetValue("TotalPrice").ToString()),
+                                bool.Parse(reader.GetValue("IsActive").ToString())
                             );
 
                             orders.Add(order);

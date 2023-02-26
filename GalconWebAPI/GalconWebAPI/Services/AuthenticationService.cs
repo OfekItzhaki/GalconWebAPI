@@ -15,13 +15,12 @@ namespace GalconWebAPI.Services
 
         public bool Login(string email, string userName, string password)
         {
-            string hashPassword = BCryptService.Hash(password);
+            string hashPassword = HashService.ComputeSha256Hash(password);
 
             if ((string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(userName)) || string.IsNullOrEmpty(password))
                 throw new Exception("Username or password are empty");
 
-            var state = _dataService.Login(email, userName, hashPassword);
-            return state;
+            return _dataService.Login(email, userName, hashPassword);;
 
 
             // Need to save UserId in global state -- User is logged in
@@ -37,17 +36,17 @@ namespace GalconWebAPI.Services
             // validate
             var tempAccount = _dataService.GetUserData(user.UserName, DataType.UserName);
             if (tempAccount.UserName == user.UserName)
-                throw new Exception("Username '" + user.UserName + "' is already taken");
+                throw new Exception("Username '" + user.UserName + "' already exists!");
 
             var tempData = _dataService.GetUserData(user.Email, DataType.Email);
             if (tempData.Email == user.Email)
-                throw new Exception("Email '" + user.Email + "' is already taken");
+                throw new Exception("Email '" + user.Email + "' already exists");
 
             tempData = _dataService.GetUserData(user.Tel, DataType.Tel);
             if (tempData.Tel == user.Tel)
-                throw new Exception("Tel '" + user.Tel + "' is already taken");
+                throw new Exception("Tel '" + user.Tel + "' already exists");
 
-            var hashPassword = BCryptService.Hash(user.Password);
+            var hashPassword = HashService.ComputeSha256Hash(user.Password);
             var newUserAccount = new User(
                                           user.UserId,
                                           user.UserName, 
@@ -61,7 +60,8 @@ namespace GalconWebAPI.Services
                                           user.LastName,
                                           user.Tel,
                                           user.Email, 
-                                          user.EmailConfirmed
+                                          user.EmailConfirmed,
+                                          user.IsActive
                                           );
 
             // INSERT new userAccount and new userData to DB

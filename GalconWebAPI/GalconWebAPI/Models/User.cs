@@ -1,5 +1,6 @@
-﻿using GalconWebAPI.Services;
-using Newtonsoft.Json.Linq;
+﻿using GalconWebAPI.Models.Enums;
+using GalconWebAPI.Services;
+using System.Diagnostics.Eventing.Reader;
 using System.Text.Json.Serialization;
 
 namespace GalconWebAPI.Models
@@ -11,7 +12,7 @@ namespace GalconWebAPI.Models
         public string Password { get; set; }
         public DateTime LastPasswordUpdatedTime { get; set; }
         public DateTime PasswordExperationTime { get; set; }
-        public int UserRole { get; set; }
+        public Role UserRole { get; set; }
         public DateTime CreatedTime { get; set; }
         public DateTime? LastUpdatedTime { get; set; }
         public string FirstName { get; set; }
@@ -19,8 +20,9 @@ namespace GalconWebAPI.Models
         public string Tel { get; set; }
         public string Email { get; set; }
         public bool EmailConfirmed { get; set; }
+        public bool IsActive { get; set; }
 
-        public User(string userName, string password, int userRole, string firstName, string lastName, string tel, string email, bool emailConfirmed)
+        public User(string userName, string password, Role userRole, string firstName, string lastName, string tel, string email, bool emailConfirmed, bool isActive)
         {
             UserId = GlobalService.GenerateUniqueId();
             UserName = userName;
@@ -35,10 +37,11 @@ namespace GalconWebAPI.Models
             Tel = tel;
             Email = email;
             EmailConfirmed = emailConfirmed;
+            IsActive = isActive;
         }
 
         [JsonConstructor]
-        public User(string userId, string userName, string password, DateTime lastPasswordUpdatedTime, DateTime passwordExperationTime, int userRole, DateTime createdTime, DateTime? lastUpdatedTime, string firstName, string lastName, string tel, string email, bool emailConfirmed)
+        public User(string userId, string userName, string password, DateTime lastPasswordUpdatedTime, DateTime passwordExperationTime, Role userRole, DateTime createdTime, DateTime? lastUpdatedTime, string firstName, string lastName, string tel, string email, bool emailConfirmed, bool isActive)
         {
             UserId = userId;
             UserName = userName;
@@ -53,6 +56,7 @@ namespace GalconWebAPI.Models
             Tel = tel;
             Email = email;
             EmailConfirmed = emailConfirmed;
+            IsActive = isActive;
         }
 
         //public User(JObject data)

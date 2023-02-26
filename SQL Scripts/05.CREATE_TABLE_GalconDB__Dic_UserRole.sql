@@ -12,8 +12,8 @@ GO
 ------------------------------------------------------------------------- 
 --DELETE FROM dbo.Dic_UserRole;
 INSERT INTO dbo.Dic_UserRole (UserRole) 
-			SELECT				'SalesPerson'
-UNION ALL	SELECT				'SalesManager'
+			SELECT				'User'
+UNION ALL	SELECT				'Admin'
 -------------------------------------------------------------------------
 	SELECT	* 
 	FROM	dbo.Dic_UserRole 

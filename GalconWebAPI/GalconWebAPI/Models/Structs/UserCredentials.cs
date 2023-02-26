@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-
+﻿
 namespace GalconWebAPI.Models.Structs
 {
     public class UserCredentials

@@ -13,6 +13,7 @@ CREATE TABLE dbo.Dyn_Order
 		 UserId			varchar(20)			NOT NULL, 
 		 OrderDate		date				NOT NULL, 
 		 TotalPrice		int					NOT NULL,
+		 IsActive		bit					NOT NULL,
 		 
 		 CONSTRAINT PK_Dyn_Order_Id			PRIMARY KEY				CLUSTERED(OrderId),
 		 CONSTRAINT FK_Dyn_Order_OrderName	FOREIGN KEY(OrderId)	REFERENCES dbo.Dyn_Order(OrderId)
@@ -26,50 +27,15 @@ ALTER TABLE dbo.Dyn_Order
 ADD CONSTRAINT UQ_dbo_Dyn_Order_#OrderId#UserId UNIQUE(OrderId, UserId)
 ------------------------------------------------------------------------- 
 DELETE FROM dbo.Dyn_Order;
-INSERT INTO dbo.Dyn_Order (OrderName, UserId, OrderDate, TotalPrice) 
-			SELECT			'a100',		1,		GETDATE(),		0	
-UNION ALL	SELECT			'a101',		1,		GETDATE(),		0		
-UNION ALL	SELECT			'a102',		2,		GETDATE(),		0						
+INSERT INTO dbo.Dyn_Order (OrderName, UserId, OrderDate, TotalPrice, IsActive) 
+			SELECT			'a100',		1,		GETDATE(),		10,		0	
+UNION ALL	SELECT			'a101',		1,		GETDATE(),		23,		0		
+UNION ALL	SELECT			'a102',		2,		GETDATE(),		300,	0						
 -------------------------------------------------------------------------
 	SELECT	* 
 	FROM	dbo.Dyn_Order 
 --	WHERE	...
 	ORDER BY OrderId;
--------------------------------------------------------------------------
-USE [GalconDB]
-GO
-CREATE OR ALTER PROCEDURE dbo.Dyn_UserOrders_Get
-	@UserId		varchar(20)	= NULL,
-	@FromDate	date		= NULL,
-	@ToDate		date		= NULL
-AS
-	PRINT 'BEFORE TRY'
-	BEGIN TRY
-		BEGIN TRAN
-			PRINT 'First Statement in the TRY block'
-				SELECT	 OrderId, 
-						 OrderName, 
-						 UserId, 
-						 OrderDate, 
-						 TotalPrice
-
-				FROM	 dbo.Dyn_Order
-				WHERE	 UserId		=	ISNULL(@UserId, UserId)
-				AND		(OrderDate	>=	@FromDate	OR @FromDate	IS NULL)
-				AND		(OrderDate	<	@ToDate		OR @ToDate		IS NULL)
-
-			PRINT 'Last Statement in the TRY block'
-		COMMIT TRAN
-	END TRY
-	BEGIN CATCH
-		PRINT('Error! Select "dbo.Dyn_Order" table')
-			IF(@@TRANCOUNT > 0)
-				ROLLBACK TRAN;
-
-			THROW; -- raise error to the client
-	END CATCH
-	PRINT 'After END CATCH'
-GO
 -------------------------------------------------------------------------
 USE [GalconDB]
 GO
@@ -111,7 +77,8 @@ CREATE OR ALTER PROCEDURE dbo.Dyn_Order_Insert
 	@OrderName			varchar(30),
 	@UserId				varchar(20),
 	@OrderDate			date,
-	@TotalPrice			int
+	@TotalPrice			int,
+	@IsActive			bit
 AS
 	PRINT 'BEFORE TRY'
 	BEGIN TRY
@@ -122,12 +89,14 @@ AS
 								 OrderName,
 								 UserId,
 								 OrderDate,
-								 TotalPrice)
+								 TotalPrice,
+								 IsActive)
 				VALUES			(@OrderId,
 								 @OrderName,
 								 @UserId,	
 								 @OrderDate,
-								 @TotalPrice)
+								 @TotalPrice,
+								 @IsActive)
 
 			PRINT 'Last Statement in the TRY block'
 		COMMIT TRAN

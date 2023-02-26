@@ -34,7 +34,6 @@ DELETE FROM dbo.Dyn_OrderDetails;
 --	WHERE	...
 	ORDER BY 2;
 -------------------------------------------------------------------------
--------------------------------------------------------------------------
 USE [GalconDB]
 GO
 CREATE OR ALTER PROCEDURE dbo.Dyn_OrderDetails_Get

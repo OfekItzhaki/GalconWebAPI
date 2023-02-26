@@ -1,4 +1,5 @@
 ﻿using GalconWebAPI.Models;
+using GalconWebAPI.Models.Enums;
 using GalconWebAPI.Models.Structs;
 using GalconWebAPI.Services;
 using Microsoft.AspNetCore.Http;
@@ -50,7 +51,7 @@ namespace GalconWebAPI.Controllers
         //GET: ApiController/GetUsersByRole/{userRole}
         [HttpGet]
         [Route("[controller]/GetUsersByRole/{userRole}")]
-        public IEnumerable<User> GetUsersByRole(int userRole)
+        public IEnumerable<User> GetUsersByRole(Role userRole)
         {
             return _dataService.GetUsersByRole(userRole);
         }

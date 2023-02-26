@@ -2,7 +2,7 @@
 GO
 CREATE OR ALTER PROCEDURE dbo.SP_CheckExists
 	(@UserId	varchar(20),
-	 @UserName	varchar(30),
+	 @UserName	varchar(20),
 	 @Tel		varchar(15),	
 	 @Email		varchar(320))
 AS	  			
@@ -33,18 +33,24 @@ USE [GalconDB]
 GO
 CREATE OR ALTER PROCEDURE dbo.SP_Login
 	(@Email		varchar(320),
-	 @UserName	varchar(30),
-	 @HashPassword	varchar(30))
+	 @UserName	varchar(20),
+	 @HashPassword	varchar(64))
 AS	  			
 	PRINT 'BEFORE TRY'
 	BEGIN TRY
 			PRINT 'First Statement in the TRY block'
 			BEGIN
 				SELECT COUNT(*) 
-				FROM [dbo].[Dyn_User] 
-				WHERE (Email		= @Email
-				OR	   UserName		= @UserName)
-				AND	   HashPassword = @HashPassword
+				FROM  [dbo].[Dyn_User] 
+				WHERE (
+					(Email = @Email			 AND @UserName IS NULL) 
+					OR 
+		 			(UserName = @UserName	 AND @Email IS NULL)
+					OR
+					(@UserName IS NOT NULL	 AND @Email IS NOT NULL
+					AND 
+					UserName = @UserName AND Email = @Email))
+				AND	HashPassword = @HashPassword
 			END
 
 			PRINT 'Last Statement in the TRY block'
@@ -76,10 +82,18 @@ AS
 				LastName,
 				Tel,
 				Email,
-				EmailConfirmed
+				EmailConfirmed,
+				IsActive
 
 		FROM	dbo.Dyn_User 
 		WHERE   UserRole = @UserRole;
+
+
+		--AS U INNER JOIN [dbo].[Dic_UserRole] AS UR 
+		--		ON U.UserRole = UR.UserRole
+		--(@RoleId IS NOT NULL AND @RoleName IS NULL AND U.UserRole = @RoleId)
+		--OR		(@RoleId IS NULL AND @RoleName IS NOT NULL AND UR.UserRole = @RoleName)
+		--OR		(@RoleId IS NOT NULL AND @RoleName IS NOT NULL AND U.UserRole = @RoleId AND UR.UserRole = @RoleName);
 
 		PRINT 'Last Statement in the TRY block'
 	END TRY
@@ -100,7 +114,7 @@ AS
 	BEGIN TRY
 		PRINT 'First Statement in the TRY block'
 
-		SELECT	 TotalPrice
+		SELECT	 SUM(TotalPrice)
 
 		FROM	 dbo.Dyn_Order
 		WHERE	 UserId		=	ISNULL(@UserId, UserId)
@@ -111,6 +125,44 @@ AS
 	END TRY
 	BEGIN CATCH
 		PRINT('Error! Select "UserData" table')
+	END CATCH
+	PRINT 'After END CATCH'
+GO
+-------------------------------------------------------------------------
+USE [GalconDB]
+GO
+CREATE OR ALTER PROCEDURE dbo.SP_GetOrders
+	@UserId		varchar(20)	= NULL,
+	@FromDate	date		= NULL,
+	@ToDate		date		= NULL,
+	@IsActive	bit			= NULL
+AS
+	PRINT 'BEFORE TRY'
+	BEGIN TRY
+		BEGIN TRAN
+			PRINT 'First Statement in the TRY block'
+				SELECT	 OrderId, 
+						 OrderName, 
+						 UserId, 
+						 OrderDate, 
+						 TotalPrice,
+						 IsActive
+
+				FROM	 dbo.Dyn_Order
+				WHERE	 UserId		=	ISNULL(@UserId, UserId)
+				AND		(OrderDate	>=	@FromDate	OR @FromDate	IS NULL)
+				AND		(OrderDate	<	@ToDate		OR @ToDate		IS NULL)
+				AND		(@IsActive		IS NULL		OR (@IsActive	IS NOT NULL AND IsActive = @IsActive));
+
+			PRINT 'Last Statement in the TRY block'
+		COMMIT TRAN
+	END TRY
+	BEGIN CATCH
+		PRINT('Error! Select "dbo.Dyn_Order" table')
+			IF(@@TRANCOUNT > 0)
+				ROLLBACK TRAN;
+
+			THROW; -- raise error to the client
 	END CATCH
 	PRINT 'After END CATCH'
 GO
