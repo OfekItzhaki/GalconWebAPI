@@ -148,23 +148,6 @@ namespace GalconWebAPI.Services
                         cmd.Dispose();
                         con.Close();
 
-                        //var reader = cmd.ExecuteReader();
-
-                        //var orderSum = 0;
-                        //while (reader.Read())
-                        //{
-                        //    var value = reader.GetValue("TotalPrice").ToString();
-                        //    if (!string.IsNullOrEmpty(value))
-                        //    {
-                        //        orderSum += int.Parse(value);
-                        //    }
-
-                        //}
-                        //reader.Close();
-                        //cmd.Dispose();
-                        //con.Close();
-
-                        //if (orderSum > 0) result = $"The orders sum for user id {userId} is: {orderSum}";
                         return result;
 
                     }
