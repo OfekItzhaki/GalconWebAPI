@@ -1,27 +1,29 @@
 USE [GalconDB]
 GO
 -------------------------------------------------------------------------
+IF OBJECT_ID('[dbo].[FK_Dyn_OrderDetails_OrderId]','F') IS NOT NULL
+	ALTER TABLE [dbo].[Dyn_OrderDetails] DROP CONSTRAINT FK_Dyn_OrderDetails_OrderId;
+GO
 IF OBJECT_ID('[dbo].[Dyn_Order]','U') IS NOT NULL
 	DROP TABLE [dbo].[Dyn_Order];
 GO
 CREATE TABLE [dbo].[Dyn_Order]
 		(OrderId		int IDENTITY(1,1)	NOT NULL
 		,OrderName		varchar(30)			NOT NULL
-		,UserId			varchar(20)			NOT NULL
+		,UserId			int					NOT NULL
 		,OrderDate		date				NOT NULL
 		,TotalPrice		decimal(10,2)		NOT NULL
 		,IsCancelled 	bit					NOT NULL CONSTRAINT DF_Dyn_Order_IsCancelled  DEFAULT(1)
 		
 		,CONSTRAINT PK_Dyn_Order_Id			PRIMARY KEY				CLUSTERED(OrderId)
-		,CONSTRAINT FK_Dyn_User_UserId		FOREIGN KEY(OrderId)	REFERENCES [dbo].[Dyn_User](UserId)
+		,CONSTRAINT FK_Dyn_User_UserId		FOREIGN KEY(UserId)		REFERENCES [dbo].[Dyn_User](UserId)
 		,CONSTRAINT UK_Dyn_Order_OrderName	UNIQUE					NONCLUSTERED(OrderName)
 	);
 GO
-------------------------------------------------------------------------- 
-IF OBJECT_ID('[dbo].[Dyn_Order]#OrderId#UserId', 'UQ') IS NOT NULL
-	ALTER TABLE [dbo].[Dyn_Order] DROP CONSTRAINT UQ_dbo_Dyn_Order_#OrderId#UserId;
-GO
-	ALTER TABLE [dbo].[Dyn_Order] ADD CONSTRAINT  UQ_dbo_Dyn_Order_#OrderId#UserId UNIQUE(OrderId, UserId);
+IF		OBJECT_ID('[dbo].[FK_Dyn_OrderDetails_OrderId]','F')	IS NULL 
+	AND OBJECT_ID('[dbo].[Dyn_OrderDetails]','U')				IS NOT NULL
+	ALTER TABLE [dbo].[Dyn_OrderDetails] 
+		ADD CONSTRAINT FK_Dyn_OrderDetails_OrderId FOREIGN KEY (OrderId) REFERENCES dbo.Dyn_Order(OrderId);
 GO
 ------------------------------------------------------------------------- 
 --	DELETE FROM [dbo].[Dyn_Order];
@@ -81,14 +83,15 @@ GO
 --Execution Example:
 	DECLARE	@OrderId int;
 	EXEC [dbo].[Dyn_Order_Insert] 
-		(@OrderName		= 'Ord10002'
+		 @OrderName		= 'Ord10002'
 		,@UserId		= 1
-		,@OrderId		= @OrderId OUTPUT);
+		,@OrderId		= @OrderId	OUTPUT;
 	SELECT @OrderId AS "@OrderId";
+	SELECT * FROM [dbo].[Dyn_Order] WITH(nolock) WHERE OrderId = @OrderId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_Order_Insert]
 	 @OrderName			varchar(30)
-	,@UserId			varchar(20)
+	,@UserId			int
 	,@OrderId			int		OUTPUT
 AS
 BEGIN
@@ -96,10 +99,8 @@ BEGIN TRY
 	DECLARE	@ErrMsg varchar(1000) = '';
 
 	INSERT INTO [dbo].[Dyn_Order]
-			(OrderName ,UserId ,OrderDate ,TotalPrice ,IsCancelled)
-	VALUES			
-			(@OrderName ,@UserId ,GetDate() ,0 ,1);
-
+			(OrderName	,UserId		,OrderDate ,TotalPrice	,IsCancelled)
+	VALUES	(@OrderName ,@UserId	,GetDate() ,0			,0);
 	SET		 @OrderId = SCOPE_IDENTITY();
 
 END TRY
@@ -118,9 +119,9 @@ GO
 --Execution Example:
 	DECLARE	@OrderId int = 1;
 	EXEC [dbo].[Dyn_Order_Update]
-			(@OrderId		= @OrderId
+			 @OrderId		= @OrderId
 			,@PriceDelta	= 100.02
-			,@IsCancelled 		= 1);
+			,@IsCancelled 	= 1;
 	SELECT * FROM [dbo].[Dyn_Order] WITH(nolock) WHERE OrderId = @OrderId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_Order_Update]
@@ -136,7 +137,6 @@ BEGIN TRY
 	UPDATE	[dbo].[Dyn_Order]
 	SET		TotalPrice	= TotalPrice + ISNULL(@PriceDelta, 0.00)
 		   ,IsCancelled = ISNULL(@IsCancelled, IsCancelled) 
-
 	WHERE	OrderId		= @OrderId;
 
 END TRY
@@ -153,8 +153,9 @@ GO
 --Description: Delete Order
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
-	EXEC [dbo].[Dyn_Order_Delete] @OrderId = 1;
-  SELECT * FROM [dbo].[Dyn_Order] WITH(nolock) WHERE OrderId = @OrderId;
+	DECLARE	@OrderId int = 1;
+	EXEC [dbo].[Dyn_Order_Delete] @OrderId = @OrderId;
+	SELECT * FROM [dbo].[Dyn_Order] WITH(nolock) WHERE OrderId = @OrderId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_Order_Delete]
 	@OrderId int
@@ -170,7 +171,8 @@ BEGIN TRY
 
 		DELETE 
 		FROM	[dbo].[Dyn_Order]
-		WHERE	OrderId = @OrderId;
+		WHERE	OrderId		= @OrderId
+		AND		IsCancelled	= 1;
 
 	COMMIT TRAN;
 

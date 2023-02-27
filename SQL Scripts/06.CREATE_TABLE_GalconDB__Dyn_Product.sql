@@ -64,14 +64,17 @@ GO
 --Description: Insert Products
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
+	DECLARE	@ProductId int;
 	EXEC [dbo].[Dyn_Product_Insert] 
-		 @ProductBarcode		= 'Prod10002'
-		,@ProductName			= 'Product 1'
+		 @ProductId				= @ProductId	OUTPUT
+		,@ProductBarcode		= 'Prod10003'
+		,@ProductName			= 'Product 3'
 		,@ProductDescription	= 'Test Product 1'
 		,@ProductPrice			= 20;
 	SELECT * FROM [dbo].[Dyn_Product] WITH(nolock) WHERE ProductId = @ProductId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_Product_Insert]
+	@ProductId				int				OUTPUT,
 	@ProductBarcode			varchar(20),
 	@ProductName			varchar(20),
 	@ProductDescription		varchar(50),
@@ -84,6 +87,7 @@ BEGIN TRY
 	INSERT INTO [dbo].[Dyn_Product]
 			(ProductBarcode		,ProductName	,ProductDescription		,ProductPrice	,IsActive)
 	VALUES	(@ProductBarcode	,@ProductName	,@ProductDescription	,@ProductPrice	,1);
+	SET @ProductId = SCOPE_IDENTITY();
 						
 END TRY
 BEGIN CATCH
@@ -99,12 +103,15 @@ GO
 --Description: Update Product
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
+	DECLARE @ProductId	int = 7;
+	DECLARE	@IsActive	bit = 0;
 	EXEC [dbo].[Dyn_Product_Update]
-			 @ProductId				= 1
-			,@ProductBarcode		= 'Prod10003'
+			 @ProductId				= @ProductId
+			,@ProductBarcode		= 'Prod10004'
 			,@ProductName			= 'Product 4'
 			,@ProductDescription	= 'Test Product 1'
-			,@ProductPrice			= 20;
+			,@ProductPrice			= 40
+			,@IsActive				= @IsActive;
 	SELECT * FROM [dbo].[Dyn_Product] WITH(nolock) WHERE ProductId = @ProductId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_Product_Update]
@@ -121,11 +128,11 @@ BEGIN TRY
 	DECLARE	@ErrMsg varchar(1000) = '';
 
 	UPDATE	[dbo].[Dyn_Product]
-		SET		 ProductBarcode		= ISNULL(@ProductBarcode, ProductBarcode)
-				,ProductName		= ISNULL(@ProductName, ProductName)
-				,ProductDescription	= ISNULL(@ProductDescription, ProductDescription)
-				,ProductPrice		= ISNULL(@ProductPrice, ProductPrice)
-				,IsActive			= ISNULL(@IsActive, IsActive)
+		SET		 ProductBarcode		= ISNULL(@ProductBarcode		, ProductBarcode	)
+				,ProductName		= ISNULL(@ProductName			, ProductName		)
+				,ProductDescription	= ISNULL(@ProductDescription	, ProductDescription)
+				,ProductPrice		= ISNULL(@ProductPrice			, ProductPrice		)
+				,IsActive			= ISNULL(@IsActive				, IsActive			)
 		WHERE	 ProductId			= @ProductId;
 
 END TRY

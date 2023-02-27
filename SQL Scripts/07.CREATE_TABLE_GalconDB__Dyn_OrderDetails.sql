@@ -44,12 +44,11 @@ GO
 --Description: Get OrderDetails
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
-DECLARE	 @OrderDetailsId	int = NULL
-		,@OrderId			int = NULL
-
-EXEC [dbo].[Dyn_OrderDetails_Get 
-		(@OrderDetailsId	= @OrderDetailsId
-		,@OrderId			= @OrderId);
+	DECLARE	 @OrderDetailsId	int = NULL
+			,@OrderId			int = NULL
+	EXEC [dbo].[Dyn_OrderDetails_Get]
+			 @OrderDetailsId	= @OrderDetailsId
+			,@OrderId			= @OrderId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_OrderDetails_Get]
 	 @OrderDetailsId	int
@@ -86,40 +85,42 @@ GO
 	--Insert:
 	------------------------------------------------------------------------
 		DECLARE	 @OrderDetailsId	int				= NULL
-				,@OrderId			int				= 3
-				,@ProductId			int				= 1
+				,@OrderId			int				= 2
+				,@ProductId			int				= 3
 				,@Quantity			int				= 3
 				,@SalePrice			decimal(10,2)	= 10.00
-
 		EXEC	[dbo].[Dyn_OrderDetails_Upsert]
-				(@OrderDetailsId	= @OrderDetailsId	OUTPUT
+				 @OrderDetailsId	= @OrderDetailsId	OUTPUT
 				,@OrderId			= @OrderId		
 				,@ProductId			= @ProductId	
 				,@Quantity			= @Quantity	
-				,@SalePrice			= @SalePrice);
+				,@SalePrice			= @SalePrice;
 
 		SELECT		* 
-		FROM		dbo.Dyn_Order			O	WITH(nolock)
+		FROM		[dbo].[Dyn_Order]			O	WITH(nolock)
 		INNER JOIN	[dbo].[Dyn_OrderDetails]	OD	WITH(nolock) ON OD.OrderId = O.OrderId
 		WHERE		OD.OrderDetailsId = @OrderDetailsId;
 	------------------------------------------------------------------------
 	--Update:
 	------------------------------------------------------------------------
-		DECLARE	 @OrderDetailsId	int				= 11
+		DECLARE	 @OrderDetailsId	int				= 8
 				,@OrderId			int				= NULL
-				,@ProductId			int				= 1
+				,@ProductId			int				= 7
 				,@Quantity			int				= 3
-				,@SalePrice			decimal(10,2)	= 5.0
-
+				,@SalePrice			decimal(10,2)
+				SELECT	@SalePrice = ProductPrice 
+				FROM	[dbo].[Dyn_Product] 
+				WHERE	ProductId	= @ProductId;
 		EXEC	[dbo].[Dyn_OrderDetails_Upsert]
-				(@OrderDetailsId	= @OrderDetailsId	OUTPUT
-				,@OrderId			= @OrderId		
+				 @OrderDetailsId	= @OrderDetailsId	OUTPUT
+				,@OrderId			= @OrderId
 				,@ProductId			= @ProductId	
 				,@Quantity			= @Quantity	
-				,@SalePrice			= @SalePrice);
+				,@SalePrice			= @SalePrice;
 
-		SELECT	* 
-		FROM	[dbo].[Dyn_OrderDetails] WITH(nolock) 
+		SELECT		* 
+		FROM		[dbo].[Dyn_Order]			O	WITH(nolock)
+		INNER JOIN	[dbo].[Dyn_OrderDetails]	OD	WITH(nolock) ON OD.OrderId = O.OrderId
 		WHERE	OrderDetailsId = @OrderDetailsId;
 	------------------------------------------------------------------------
 */
@@ -161,18 +162,17 @@ BEGIN TRY
 		BEGIN
 			INSERT INTO [dbo].[Dyn_OrderDetails]
 						(OrderId, ProductId, Quantity ,SalePrice, CreationTime, LastUpdatedTime)
-			VALUES				
-						(@OrderId ,@ProductId ,@Quantity ,@SalePrice ,GetDate() ,NULL);
+			VALUES		(@OrderId ,@ProductId ,@Quantity ,@SalePrice ,GetDate() ,NULL);
 			SET			 @OrderDetailsId = SCOPE_IDENTITY();
 		END;
 
 
-		SELECT		@OrderId				= DELETED_OrderId
-				   ,@PriceDelta				= ((INSERTED_SalesPrice * INSERTED_Quantity) 
-												- (DELETED_SalesPrice * DELETED_Quantity)) 
+		SELECT		@OrderId		= DELETED_OrderId
+				   ,@PriceDelta		= ((INSERTED_SalesPrice * INSERTED_Quantity	) 
+									-  (DELETED_SalesPrice	* DELETED_Quantity	))
 		FROM		@T_PriceDelta;
-		SET			@PriceDelta				= ISNULL(@PriceDelta, (@SalePrice * @Quantity));
-		EXEC		dbo.Dyn_Order_Update	@OrderId = @OrderId ,@PriceDelta = @PriceDelta;
+		SET			@PriceDelta		= ISNULL(@PriceDelta, (@SalePrice * @Quantity));
+		EXEC		dbo.Dyn_Order_Update @OrderId = @OrderId ,@PriceDelta = @PriceDelta;
 
 	COMMIT TRAN;
 END TRY
@@ -191,11 +191,16 @@ GO
 --Description: Delete OrderDetails
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
-		DECLARE	 @OrderDetailsId	int = NULL	--(@OrderDetailsId	= NULL will Delete All OrderDetails Rows of Specified @OrderId)
+		DECLARE	 @OrderDetailsId	int = 8		--(@OrderDetailsId	= NULL will Delete All OrderDetails Rows of Specified @OrderId)
 				,@OrderId			int = NULL	--(@OrderId is to Delete All OrderDetails of an @OrderId. And @OrderId = NULL to be sent when Delete of specific @OrderDetailsId)
 		EXEC [dbo].[Dyn_OrderDetails_Delete]
-				(@OrderDetailsId	= @OrderDetailsId
-				,@OrderId			= @OrderId);
+				 @OrderDetailsId	= @OrderDetailsId
+				,@OrderId			= @OrderId;
+
+		SELECT		* 
+		FROM		[dbo].[Dyn_Order]			O	WITH(nolock)
+		INNER JOIN	[dbo].[Dyn_OrderDetails]	OD	WITH(nolock) ON OD.OrderId = O.OrderId
+		WHERE		OrderDetailsId = @OrderDetailsId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_OrderDetails_Delete]
 	  @OrderDetailsId	int	= NULL

@@ -9,17 +9,14 @@ BEGIN
 BEGIN TRY
 	DECLARE	@ErrMsg varchar(1000) = '';	
 
-	SELECT COUNT(*) 
+	SELECT	COUNT(*) 
 	FROM	 [dbo].[Dyn_User] 
 
-	WHERE  ((@UserName	IS NOT NULL	 AND @Email		IS NOT NULL
-					OR 
-		 	(UserName	= @UserName	 AND @Email		IS NULL)
-					OR
-			(Email		= @Email	 AND @UserName	IS NULL))
-
-	AND		UserName	= @UserName  AND  Email		= @Email)
-	AND		HashPassword = @HashPassword;
+	WHERE  (	(@UserName		IS NOT NULL	 AND @Email		IS NOT NULL
+			OR 	(UserName		= @UserName	 AND @Email		IS NULL)
+			OR	(Email			= @Email	 AND @UserName	IS NULL))
+			AND	UserName		= @UserName  AND Email		= @Email	)
+	AND			HashPassword	= @HashPassword;
 
 END TRY
 BEGIN CATCH
@@ -51,7 +48,6 @@ BEGIN TRY
 			Email,
 			EmailConfirmed,
 			IsActive
-
 	FROM	[dbo].[Dyn_User] 
 	WHERE   UserRole = @UserRole;
 
@@ -76,7 +72,6 @@ BEGIN TRY
 
 	SELECT	 SUM(TotalPrice)
 	FROM	[dbo].[Dyn_Order]
-
 	WHERE	(UserId		=	@UserId		OR @UserId		IS NULL)
 	AND		(OrderDate	>=	@FromDate	OR @FromDate	IS NULL)
 	AND		(OrderDate	<=	@ToDate		OR @ToDate		IS NULL);
@@ -108,7 +103,6 @@ BEGIN TRY
 				,TotalPrice
 				,IsCancelled
 	FROM		[dbo].[Dyn_Order]
-
 	WHERE		 UserId			=	ISNULL(@UserId, UserId)
 	AND			(OrderDate		>=	@FromDate	OR @FromDate		IS NULL)
 	AND			(OrderDate		<	@ToDate		OR @ToDate			IS NULL)
