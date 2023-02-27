@@ -103,24 +103,28 @@ GO
 --Description: Update Product
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
-	DECLARE @ProductId	int = 7;
-	DECLARE	@IsActive	bit = 0;
+	DECLARE @ProductId				int 		= 7;
+	DECLARE @ProductBarcode			varchar(20) = 'Prod10004';
+	DECLARE @ProductName			varchar(20)	= 'Product 4';
+	DECLARE @ProductDescription		varchar(50)	= 'Test Product 1';
+	DECLARE @ProductPrice			int			= 40;
+	DECLARE @IsActive				bit			= 0;
 	EXEC [dbo].[Dyn_Product_Update]
 			 @ProductId				= @ProductId
-			,@ProductBarcode		= 'Prod10004'
-			,@ProductName			= 'Product 4'
-			,@ProductDescription	= 'Test Product 1'
-			,@ProductPrice			= 40
+			,@ProductBarcode		= @ProductBarcode	
+			,@ProductName			= @ProductName		
+			,@ProductDescription	= @ProductDescription
+			,@ProductPrice			= @ProductPrice		
 			,@IsActive				= @IsActive;
 	SELECT * FROM [dbo].[Dyn_Product] WITH(nolock) WHERE ProductId = @ProductId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_Product_Update]
-	 (@ProductId			int 	
+	  @ProductId			int 	
 	 ,@ProductBarcode		varchar(20) 	= NULL
 	 ,@ProductName			varchar(20)		= NULL
 	 ,@ProductDescription	varchar(50)		= NULL	
 	 ,@ProductPrice			int				= NULL
-	 ,@IsActive				bit				= NULL)
+	 ,@IsActive				bit				= NULL
 AS
 BEGIN
 BEGIN TRY

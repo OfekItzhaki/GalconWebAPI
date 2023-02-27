@@ -82,9 +82,11 @@ GO
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
 	DECLARE	@OrderId int;
+	DECLARE @OrderName		varchar(30) = 'Ord10002'
+	DECLARE	@UserId			int			= 1
 	EXEC [dbo].[Dyn_Order_Insert] 
-		 @OrderName		= 'Ord10002'
-		,@UserId		= 1
+		 @OrderName		= @OrderName	
+		,@UserId		= @UserId		
 		,@OrderId		= @OrderId	OUTPUT;
 	SELECT @OrderId AS "@OrderId";
 	SELECT * FROM [dbo].[Dyn_Order] WITH(nolock) WHERE OrderId = @OrderId;
@@ -117,11 +119,13 @@ GO
 --Description: Update Order
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
-	DECLARE	@OrderId int = 1;
+	DECLARE	@OrderId		int					= 1;
+	DECLARE @PriceDelta		decimal(10,2)		= 100.02
+	DECLARE @IsCancelled	bit					= 1;
 	EXEC [dbo].[Dyn_Order_Update]
 			 @OrderId		= @OrderId
-			,@PriceDelta	= 100.02
-			,@IsCancelled 	= 1;
+			,@PriceDelta	= @PriceDelta	
+			,@IsCancelled 	= @IsCancelled
 	SELECT * FROM [dbo].[Dyn_Order] WITH(nolock) WHERE OrderId = @OrderId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_Order_Update]

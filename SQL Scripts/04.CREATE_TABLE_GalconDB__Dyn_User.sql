@@ -170,33 +170,30 @@ GO
 --Description: Update User
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
-	DECLARE	@UserId						int				= 4;
-	DECLARE	@HashPassWord				nvarchar(64)	= HASHBYTES('SHA2_256', 'Password');
-	DECLARE	@OldPassword				nvarchar(64)	= HASHBYTES('SHA2_256', 'Old');
-	DECLARE	@PasswordExpirationTime		datetime		= GetDate()
-	DECLARE	@LastUpdatedTime			datetime		= GetDate()
+	DECLARE	@UserId						int				= 1;
+	DECLARE	@UserName					varchar(20)		= 'User03';
+	DECLARE	@UserRole					int				= 1;
+	DECLARE	@FirstName					varchar(20)		= 'First';
+	DECLARE	@LastName					varchar(20)		= 'Last';
+	DECLARE	@Tel						varchar(20)		= '0548473849';
+	DECLARE	@Email						varchar(20)		= 'this@gmail.com';
+	DECLARE	@EmailConfirmed				bit				= 0;
 	DECLARE	@IsActive					bit				= 0;
 	EXEC [dbo].[Dyn_User_Update]
-				@UserId						= @UserId
-			   ,@UserName					= 'User02'
-			   ,@HashPassWord				= @HashPassWord
-			   ,@OldPassword				= @OldPassword
-			   ,@PasswordExpirationTime		= @PasswordExpirationTime	
-			   ,@UserRole					= 1
-			   ,@FirstName					= 'First'
-			   ,@LastName					= 'Last'
-			   ,@Tel						= '0548473849'
-			   ,@Email						= 'this@gmail.com'
-			   ,@EmailConfirmed				= 0
-			   ,@IsActive					= @IsActive;
+				@UserId						= @UserId			
+			   ,@UserName					= @UserName		
+			   ,@UserRole					= @UserRole		
+			   ,@FirstName					= @FirstName		
+			   ,@LastName					= @LastName		
+			   ,@Tel						= @Tel			
+			   ,@Email						= @Email			
+			   ,@EmailConfirmed				= @EmailConfirmed	
+			   ,@IsActive					= @IsActive;		
 	SELECT * FROM [dbo].[Dyn_User] WITH(nolock) WHERE UserId = @UserId;
 */
 CREATE OR ALTER PROCEDURE [dbo].[Dyn_User_Update]
 	 @UserId					int
 	,@UserName					varchar(20)		= NULL
-	,@HashPassWord				nvarchar(64)	= NULL
-	,@OldPassword				nvarchar(64)	= NULL
-	,@PasswordExpirationTime	dateTime		= NULL
 	,@UserRole					int				= NULL
     ,@FirstName					varchar(30)		= NULL
 	,@LastName					varchar(30)		= NULL
@@ -210,19 +207,9 @@ BEGIN TRY
 	SET NOCOUNT ON;
 	DECLARE	@ErrMsg varchar(1000) = '';
 	DECLARE @TempPasswordUpdatedTime AS datetime
-
-	IF EXISTS (SELECT TOP 1 1 FROM [dbo].[Dyn_User] WHERE HashPassWord = @HashPassWord)
-		RAISERROR('New Password must not be the same as previous password',16,1);
-
-	SET @TempPasswordUpdatedTime =  CASE	WHEN @OldPassword IS NOT NULL
-											THEN GetDate() ELSE @PasswordExpirationTime
-									END
 	
 	UPDATE	[dbo].[Dyn_User]
 	SET		 UserName					= ISNULL(@UserName,					UserName)
-			,HashPassWord				= ISNULL(@HashPassWord,				HashPassWord)
-			,LastPasswordUpdatedTime	= @TempPasswordUpdatedTime
-			,PasswordExpirationTime		= ISNULL(@PasswordExpirationTime,	PasswordExpirationTime)
 			,UserRole					= ISNULL(@UserRole,					UserRole)
 			,LastUpdatedTime			= GetDate()
 			,FirstName					= ISNULL(@FirstName,				FirstName)
@@ -247,7 +234,7 @@ GO
 --Description: Delete User
 --Created: Ofek Itzhaki, "2023-02-24"
 --Execution Example:
-	DECLARE	@UserId int = 4;
+	DECLARE	@UserId int = 1;
 	EXEC [dbo].[Dyn_User_Delete] @UserId = @UserId;
 	SELECT * FROM [dbo].[Dyn_User] WITH(nolock)	WHERE UserId = @UserId;
 */
