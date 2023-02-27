@@ -3,15 +3,16 @@ using GalconWebAPI.Models.Enums;
 using System.Data.SqlClient;
 using System.Data;
 using System.Reflection;
+using GalconWebAPI.Services.DataService;
 
-namespace GalconWebAPI.Services
+namespace GalconWebAPI.Services.AuthenticationService
 {
-    public class AuthenticationService
+    public class AuthenticationService : IAuthenticationService
     {
-        private readonly DataService _dataService;
+        private readonly IDataService _dataService;
         IConfiguration _config;
 
-        public AuthenticationService(DataService dataService, IConfiguration config)
+        public AuthenticationService(IDataService dataService, IConfiguration config)
         {
             _dataService = dataService;
             _config = config;
@@ -23,7 +24,7 @@ namespace GalconWebAPI.Services
 
             password = HashService.ComputeSha256Hash(password);
 
-            if ((string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(userName)) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
                 throw new Exception("Username or password are empty");
 
             var state = false;
@@ -31,7 +32,7 @@ namespace GalconWebAPI.Services
             {
                 try
                 {
-                    if ((string.IsNullOrEmpty(email) && string.IsNullOrEmpty(userName)) || string.IsNullOrEmpty(password))
+                    if (string.IsNullOrEmpty(email) && string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(password))
                         return state;
                     else
                     {
@@ -69,7 +70,7 @@ namespace GalconWebAPI.Services
             }
         }
 
-        public void Logout() 
+        public void Logout()
         {
             // Future implementation
         }
@@ -97,7 +98,7 @@ namespace GalconWebAPI.Services
             }
 
             var hashPassword = HashService.ComputeSha256Hash(user.Password);
-            user =  new User.CreateUser(
+            user = new User.CreateUser(
                                     user.UserName,
                                     hashPassword,
                                     user.FirstName,

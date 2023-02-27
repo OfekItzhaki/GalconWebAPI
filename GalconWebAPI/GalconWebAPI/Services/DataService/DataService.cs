@@ -2,23 +2,11 @@
 using GalconWebAPI.Models.Enums;
 using System.Data;
 using System.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Reflection.PortableExecutable;
-using System.Runtime.Serialization;
-using GalconWebAPI.Models.NullObjects;
-using Microsoft.OpenApi.Extensions;
 using GalconWebAPI.Models.NullObjects.NullUser;
 
-namespace GalconWebAPI.Services
+namespace GalconWebAPI.Services.DataService
 {
-    public class DataService
+    public class DataService : IDataService
     {
         IConfiguration _config;
 

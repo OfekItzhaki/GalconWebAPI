@@ -1,7 +1,8 @@
 ﻿using GalconWebAPI.Models;
 using GalconWebAPI.Models.Enums;
 using GalconWebAPI.Models.Structs;
-using GalconWebAPI.Services;
+using GalconWebAPI.Services.AuthenticationService;
+using GalconWebAPI.Services.DataService;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,9 +13,9 @@ namespace GalconWebAPI.Controllers
     {
         private readonly ILogger<ApiController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly DataService _dataService;
-        private readonly AuthenticationService _authenticationService;
-        public ApiController(ILogger<ApiController> logger, IConfiguration configuration, DataService dataService, AuthenticationService authenticationService)
+        private readonly IDataService _dataService;
+        private readonly IAuthenticationService _authenticationService;
+        public ApiController(ILogger<ApiController> logger, IConfiguration configuration, IDataService dataService, IAuthenticationService authenticationService)
         {
             _logger = logger;
             _configuration = configuration;

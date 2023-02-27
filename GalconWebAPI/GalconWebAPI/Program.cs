@@ -2,15 +2,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.DependencyInjection;
-using GalconWebAPI.Services;
+using GalconWebAPI.Services.Database;
+using GalconWebAPI.Services.DataService;
+using GalconWebAPI.Services.AuthenticationService;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddSingleton<DataService>();
-builder.Services.AddSingleton<AuthenticationService>();
+//builder.Services.AddSingleton<IDatabaseConnection, DatabaseConnection>();
+builder.Services.AddSingleton<IDataService, DataService>();
+builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
