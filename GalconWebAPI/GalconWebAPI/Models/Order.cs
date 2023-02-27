@@ -1,61 +1,49 @@
-﻿
+﻿using System.Text.Json.Serialization;
+
 namespace GalconWebAPI.Models
 {
-    public class Order
+    public abstract class Order
     {
-        public int OrderId { get; set; }
         public string OrderName { get; set; }
         public int UserId { get; set; }
-        public DateTime OrderDate { get; set; }
-        public int TotalPrice { get; set; }
-        public bool IsActive { get; set; }
 
-        public Order(int orderId, string orderName, int userId, int totalPrice, bool isActive)
+        public class GetOrder : Order
         {
-            OrderId = orderId;
-            OrderName = orderName;
-            UserId = userId;
-            OrderDate = DateTime.Now;
-            TotalPrice = totalPrice;
-            IsActive = isActive;
+            public int OrderId { get; set; }
+            public DateTime OrderDate { get; set; }
+            public decimal TotalPrice { get; set; }
+            public bool IsCancelled { get; set; }
+            public GetOrder(string orderName, int userId)
+            {
+                OrderName = orderName;
+                UserId = userId;
+            }
+
+            public GetOrder(int orderId, string orderName, int userId) : this(orderName, userId)
+            {
+                OrderId = orderId;
+                OrderDate = DateTime.Now;
+                TotalPrice = 0;
+                IsCancelled = false;
+            }
+
+            [JsonConstructor]
+            public GetOrder(int orderId, string orderName, int userId, DateTime orderDate, decimal totalPrice, bool isCancelled) : this(orderId, orderName, userId)
+            {
+                OrderDate = orderDate;
+                TotalPrice = totalPrice;
+                IsCancelled = isCancelled;
+            }
         }
 
-        public Order(int orderId, string orderName, int userId, DateTime orderDate, int totalPrice, bool isActive)
+        public class CreateOrder : Order
         {
-            OrderId = orderId;
-            OrderName = orderName;
-            UserId = userId;
-            OrderDate = orderDate;
-            TotalPrice = totalPrice;
-            IsActive = isActive;
+            [JsonConstructor]
+            public CreateOrder(string orderName, int userId)
+            {
+                OrderName = orderName;
+                UserId = userId;
+            }
         }
-
-        //public Order(JObject data)
-        //{
-        //    int tmp;
-        //    if (!data.Children().Contains("OrderId"))
-        //    {
-        //        throw new Exception("Parameter 'OrderId' missing");
-        //    }
-        //    OrderId = int.TryParse(data["OrderId"].ToString(), out tmp) ? tmp : throw new Exception("Invalid 'OrderId' value");
-
-        //    if (!data.Children().Contains("UserId"))
-        //    {
-        //        throw new Exception("Parameter 'UserId' missing");
-        //    }
-        //    UserId = int.TryParse(data["UserId"].ToString(), out tmp) ? tmp : throw new Exception("Invalid 'UserId' value");
-
-        //    if (!data.Children().Contains("OrderDate"))
-        //    {
-        //        throw new Exception("Parameter 'OrderDate' missing");
-        //    }
-        //    OrderDate = DateTime.Parse(data["OrderDate"].ToString());
-
-        //    if (!data.Children().Contains("TotalPrice"))
-        //    {
-        //        throw new Exception("Parameter 'TotalPrice' missing");
-        //    }
-        //    TotalPrice = int.TryParse(data["TotalPrice"].ToString(), out tmp) ? tmp : throw new Exception("Invalid 'TotalPrice' value");
-        //}
     }
 }

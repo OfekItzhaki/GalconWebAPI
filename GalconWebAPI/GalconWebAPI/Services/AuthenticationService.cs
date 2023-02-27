@@ -31,7 +31,7 @@ namespace GalconWebAPI.Services
             // Future implementation
         }
 
-        public bool Register(User user)
+        public bool Register(User.CreateUser user)
         {
             // validate
             var tempAccount = _dataService.GetUserData(user.UserName, DataType.UserName);
@@ -47,22 +47,14 @@ namespace GalconWebAPI.Services
                 throw new Exception("Tel '" + user.Tel + "' already exists");
 
             var hashPassword = HashService.ComputeSha256Hash(user.Password);
-            var newUserAccount = new User(
-                                          user.UserId,
-                                          user.UserName, 
-                                          hashPassword, 
-                                          user.LastPasswordUpdatedTime, 
-                                          user.PasswordExperationTime,
-                                          user.UserRole,
-                                          user.CreatedTime,
-                                          user.LastUpdatedTime,
-                                          user.FirstName,
-                                          user.LastName,
-                                          user.Tel,
-                                          user.Email, 
-                                          user.EmailConfirmed,
-                                          user.IsActive
-                                          );
+            var newUserAccount = new User.CreateUser(
+                                    user.UserName, 
+                                    hashPassword,
+                                    user.FirstName,
+                                    user.LastName,
+                                    user.Tel,
+                                    user.Email
+                                    );
 
             // INSERT new userAccount and new userData to DB
             var wasSuccessful = _dataService.Register(newUserAccount);

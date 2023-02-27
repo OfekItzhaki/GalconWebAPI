@@ -1,54 +1,56 @@
 USE [GalconDB]
 GO
 -------------------------------------------------------------------------
-	IF OBJECT_ID('dbo.Dic_UserRole','U') IS NOT NULL
-		DROP TABLE dbo.Dic_UserRole;
+	IF OBJECT_ID('[dbo].[Dic_UserRole]','U') IS NOT NULL
+		DROP TABLE [dbo].[Dic_UserRole];
 	GO
-CREATE TABLE dbo.Dic_UserRole 
-		(RoleId int IDENTITY(1,1) NOT NULL, UserRole varchar(40) UNIQUE NOT NULL
-		,CONSTRAINT PK_Dic_UserRole_RoleId PRIMARY KEY CLUSTERED (RoleId)
+CREATE TABLE [dbo].[Dic_UserRole] 
+		(RoleId int IDENTITY(1,1) NOT NULL, UserRole varchar(40) NOT NULL
+
+		,CONSTRAINT PK_Dic_UserRole_RoleId		PRIMARY KEY CLUSTERED (RoleId)
+		,CONSTRAINT UK_Dyn_UserRole_UserRole	UNIQUE		NONCLUSTERED(UserRole)
 	);
 GO
 ------------------------------------------------------------------------- 
 --DELETE FROM dbo.Dic_UserRole;
-INSERT INTO dbo.Dic_UserRole (UserRole) 
-			SELECT				'User'
-UNION ALL	SELECT				'Admin'
+SET		IDENTITY_INSERT [dbo].[Dic_UserRole] ON;
+INSERT	INTO			[dbo].[Dic_UserRole] (RoleId, UserRole)
+			SELECT				1		,'User'
+UNION ALL	SELECT				2		,'Admin'
+SET		IDENTITY_INSERT [dbo].[Dic_UserRole] OFF;
 -------------------------------------------------------------------------
-	SELECT	* 
-	FROM	dbo.Dic_UserRole 
+	SELECT	RoleId, UserRole 
+	FROM	[dbo].[Dic_UserRole] 
 --	WHERE	...
 	ORDER BY RoleId;
 -------------------------------------------------------------------------
--------------------------------------------------------------------------
 USE [GalconDB]
 GO
-CREATE OR ALTER PROCEDURE dbo.Dic_UserRole_Get
-	@RoleId int = 0
+/*
+--Description: Users Get
+--Created: Ofek Itzhaki, "2023-02-24"
+--Execution Example:
+	EXEC [dbo].[Dic_UserRole_Get]	 
+				@RoleId	= NULL
+*/
+CREATE OR ALTER PROCEDURE [dbo].[Dic_UserRole_Get]
+	@RoleId int = 1
 AS
-	PRINT 'BEFORE TRY'
-	BEGIN TRY
-		BEGIN TRAN
-			PRINT 'First Statement in the TRY block'
+BEGIN
+BEGIN TRY
+	DECLARE	@ErrMsg varchar(1000) = '';
 
-			SELECT		RoleId,
-						UserRole
+	SELECT		RoleId,
+				UserRole
+	FROM		[dbo].[Dic_UserRole] 
+	WHERE		RoleId = ISNULL(@RoleId, RoleId)
+	ORDER BY	RoleId;
 
-			FROM		dbo.Dic_UserRole 
-			WHERE		RoleId = ISNULL(@RoleId, RoleId)
-			ORDER BY	RoleId;
-
-			PRINT 'Last Statement in the TRY block'
-		COMMIT TRAN
-	END TRY
-	BEGIN CATCH
-		PRINT('Error! Select "Dic_UserRole" table')
-			IF(@@TRANCOUNT > 0)
-				ROLLBACK TRAN;
-
-			THROW; -- raise error to the client
-	END CATCH
-	PRINT 'After END CATCH'
+END TRY
+BEGIN CATCH
+	SET @ErrMsg = ERROR_MESSAGE();
+	RAISERROR(@ErrMsg,16,1);
+END CATCH
+END
 GO
--------------------------------------------------------------------------
 -------------------------------------------------------------------------

@@ -1,15 +1,22 @@
 USE [master]
 GO
-CREATE LOGIN [GalconLogin] WITH PASSWORD=N'GalconLogin', DEFAULT_DATABASE=[GalconDB], CHECK_EXPIRATION=OFF, CHECK_POLICY=OFF
+IF SUSER_SID('GalconLogin') IS NOT NULL
+	DROP LOGIN [GalconLogin];
+GO
+IF SUSER_SID('GalconLogin') IS NULL
+	CREATE LOGIN [GalconLogin] WITH PASSWORD=N'GalconLogin'
+		, DEFAULT_DATABASE=[GalconDB], CHECK_EXPIRATION=OFF, CHECK_POLICY=OFF;
 GO
 USE [GalconDB]
 GO
-CREATE USER [GalconLogin] FOR LOGIN [GalconLogin]
+IF USER_ID('GalconLogin') IS NULL
+	CREATE USER [GalconLogin] FOR LOGIN [GalconLogin]
 GO
 USE [GalconDB]
 GO
 ALTER USER [GalconLogin] WITH DEFAULT_SCHEMA=[dbo]
 GO
+
 USE [GalconDB]
 GO
 ALTER ROLE [db_owner] ADD MEMBER [GalconLogin]

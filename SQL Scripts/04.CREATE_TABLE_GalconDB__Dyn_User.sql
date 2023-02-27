@@ -1,219 +1,285 @@
 USE [GalconDB]
 GO
 -------------------------------------------------------------------------
-	IF OBJECT_ID('dbo.Dyn_User','U') IS NOT NULL
-		DROP TABLE dbo.Dyn_User;
-	GO
-CREATE TABLE dbo.Dyn_User 
-		(Id							int IDENTITY(1,1)	NOT NULL,
-		 UserId						varchar(20) UNIQUE	NOT NULL, 
-		 UserName					varchar(20) UNIQUE	NOT NULL, 
-		 HashPassWord				varchar(64)			NOT NULL,
-		 LastPasswordUpdatedTime	dateTime			NOT NULL,
-		 PasswordExpirationTime		dateTime			NOT NULL,
-		 UserRole					int					NOT NULL, 
-		 CreatedTime				dateTime			NOT NULL, 
-		 LastUpdatedTime			dateTime			NULL,
-		 FirstName					varchar(30)			NOT NULL, 
-		 LastName					varchar(30)			NOT NULL, 
-		 Tel						varchar(15)			NOT NULL, 
-		 Email						varchar(320)		NOT NULL, 
-		 EmailConfirmed				bit					NOT NULL,
-		 IsActive					bit					NOT NULL,
+IF OBJECT_ID('[dbo].[Dyn_User]','U') IS NOT NULL
+	DROP TABLE [dbo].[Dyn_User];
+GO
+CREATE TABLE [dbo].[Dyn_User] 
+		(UserId						int IDENTITY(1,1)	NOT NULL
+		,UserName					varchar(20)			NOT NULL 
+		,HashPassWord				varchar(64)			NOT NULL
+		,LastPasswordUpdatedTime	dateTime			NULL
+		,PasswordExpirationTime		dateTime			NOT NULL
+		,UserRole					int					NOT NULL 
+		,CreationTime				dateTime			NOT NULL 
+		,LastUpdatedTime			dateTime			NULL
+		,FirstName					varchar(30)			NOT NULL 
+		,LastName					varchar(30)			NOT NULL 
+		,Tel						varchar(15)			NOT NULL 
+		,Email						varchar(320)		NOT NULL 
+		,EmailConfirmed				bit					NOT NULL
+		,IsActive					bit					NOT NULL
 
-		 CONSTRAINT PK_Dyn_User_Id PRIMARY KEY CLUSTERED(Id)
+		,CONSTRAINT PK_Dyn_User_Id			PRIMARY KEY CLUSTERED(UserId)
+		,CONSTRAINT UK_Dyn_User_UserName	UNIQUE		NONCLUSTERED(UserName)
 	);
 GO
 ------------------------------------------------------------------------- 
-DELETE FROM dbo.Dyn_User;
---INSERT INTO dbo.Dyn_User (UserId, UserRole, CreatedTime, LastUpdatedTime, UserId, FirstName, LastName, Tel, Email, EmailConfirmed) 
+DELETE FROM [dbo].[Dyn_User];
+--INSERT INTO [dbo].[Dyn_User] (UserId, UserRole, CreationTime, LastUpdatedTime, UserId, FirstName, LastName, Tel, Email, EmailConfirmed) 
 --			SELECT					
 --UNION ALL SELECT					
 -------------------------------------------------------------------------
 	SELECT	* 
-	FROM	dbo.Dyn_User 
+	FROM	[dbo].[Dyn_User] 
 --	WHERE	...
 	ORDER BY UserId;
 -------------------------------------------------------------------------
+/*
+--Description: Get Users
+--Created: Ofek Itzhaki, "2023-02-24"
+--Execution Example:
+	EXEC [dbo].[Dyn_User_Get]	 
+				   (@UserId		= NULL
+				   ,@UserName	= NULL
+				   ,@Tel		= NULL
+				   ,@Email		= NULL);
+*/
 USE [GalconDB]
 GO
-CREATE OR ALTER PROCEDURE dbo.Dyn_User_Get
-		@UserId		varchar(20)	 = NULL,
-		@UserName	varchar(20)  = NULL,
-		@Tel		varchar(15)  = NULL,
-		@Email		varchar(320) = NULL
+CREATE OR ALTER PROCEDURE [dbo].[Dyn_User_Get]
+		(@UserId	int			 = NULL
+		,@UserName	varchar(20)  = NULL
+		,@Tel		varchar(15)  = NULL
+		,@Email		varchar(320) = NULL)
 AS
-	PRINT 'BEFORE TRY'
-	BEGIN TRY
-			PRINT 'First Statement in the TRY block'
+BEGIN
+BEGIN TRY
+	DECLARE	@ErrMsg		varchar(1000)	= '';
+	DECLARE @EmptyPass	varchar(64)		= '';
 
-			SELECT	UserId,
-					UserName,				
-					HashPassWord,			
-					LastPasswordUpdatedTime,
-					PasswordExpirationTime,	
-					UserRole,
-					CreatedTime,
-					LastUpdatedTime,
-					FirstName,
-					LastName,
-					Tel,
-					Email,
-					EmailConfirmed,
-					IsActive
+	SELECT	 UserId
+			,UserName
+			,@EmptyPass AS 'HashPassword'
+			,LastPasswordUpdatedTime
+			,PasswordExpirationTime	
+			,UserRole
+			,CreationTime
+			,LastUpdatedTime
+			,FirstName
+			,LastName
+			,Tel
+			,Email
+			,EmailConfirmed
+			,IsActive
 
-			FROM	dbo.Dyn_User 
-			WHERE   UserId	= @UserId
-			OR		UserName = @UserName
-			OR		Tel		= @Tel
-			OR		Email	= @Email;
+	FROM		[dbo].[Dyn_User] 
+	WHERE		UserId	= @UserId
+	OR			UserName = @UserName
+	OR			Tel		= @Tel
+	OR			Email	= @Email
+	ORDER BY	UserId;
 
-			PRINT 'Last Statement in the TRY block'
-	END TRY
-	BEGIN CATCH
-		PRINT('Error! Select "UserData" table')
-	END CATCH
-	PRINT 'After END CATCH'
+	IF (@@ROWCOUNT = 0)
+	BEGIN
+		SELECT	 UserId
+				,UserName
+				,@EmptyPass AS 'HashPassword'
+				,LastPasswordUpdatedTime
+				,PasswordExpirationTime	
+				,UserRole
+				,CreationTime
+				,LastUpdatedTime
+				,FirstName
+				,LastName
+				,Tel
+				,Email
+				,EmailConfirmed
+				,IsActive
+
+		FROM		[dbo].[Dyn_User] 
+		ORDER BY	UserId;
+
+	END
+
+END TRY
+BEGIN CATCH
+	SET @ErrMsg = ERROR_MESSAGE();
+	RAISERROR(@ErrMsg,16,1);
+END CATCH
+END
 GO
 -------------------------------------------------------------------------
 USE [GalconDB]
 GO
-CREATE OR ALTER PROCEDURE dbo.Dyn_User_Insert
-	@UserId						varchar(20),
-	@UserName					varchar(20),
-	@HashPassWord				varchar(64),
-	@LastPasswordUpdatedTime	datetime,
-	@PasswordExpirationTime		datetime,
-	@UserRole					int,
-	@CreatedTime				dateTime,
-    @LastUpdatedTime			dateTime,
-    @FirstName					varchar(30),
-	@LastName					varchar(30),
-    @Tel						varchar(15),
-	@Email						varchar(320),
-	@EmailConfirmed				bit,
-	@IsActive					bit
+/*
+--Description: Insert User
+--Created: Ofek Itzhaki, "2023-02-24"
+--Execution Example:
+	DECLARE	@OrderId int;
+	EXEC [dbo].[Dyn_User_Insert] 
+		(@UserName					= 'User'
+		,@HashPassWord				= 'Password'
+		,@LastPasswordUpdatedTime	= GetDate()
+		,@PasswordExpirationTime	= GetDate()
+		,@UserRole					= 1
+		,@CreationTime				= GetDate()
+		,@LastUpdatedTime			= GetDate()
+		,@FirstName					= 'First'
+		,@LastName					= 'Last'
+		,@Tel						= '0548473849'
+		,@Email						= 'this@gmail.com'
+		,@EmailConfirmed			= 0
+		,@IsActive					= 1;				
+	SELECT * FROM [dbo].[Dyn_User] WITH(nolock) WHERE UserId = @UserId;
+*/
+CREATE OR ALTER PROCEDURE [dbo].[Dyn_User_Insert]
+	(@UserName					varchar(20)
+	,@HashPassWord				varchar(64)
+	,@UserRole					int
+    ,@FirstName					varchar(30)
+	,@LastName					varchar(30)
+    ,@Tel						varchar(15)
+	,@Email						varchar(320))
 AS
-	PRINT 'BEFORE TRY'
-	BEGIN TRY
-		BEGIN TRAN
-			PRINT 'First Statement in the TRY block'
+BEGIN
+BEGIN TRY
+	SET NOCOUNT ON;
+	DECLARE	@ErrMsg varchar(1000) = '';
+	DECLARE @FutureExpirationTime datetime = GetDate() + 120;
 
-			INSERT INTO dbo.Dyn_User
-					   (UserId,
-					    UserName,
-						HashPassWord,
-						LastPasswordUpdatedTime,
-						PasswordExpirationTime,
-						UserRole,
-						CreatedTime,
-						LastUpdatedTime,
-						FirstName,
-						LastName,
-						Tel,
-						Email,
-						EmailConfirmed,
-						IsActive)
+	INSERT INTO [dbo].[Dyn_User]
+				(UserName
+				,HashPassWord
+				,LastPasswordUpdatedTime
+				,PasswordExpirationTime
+				,UserRole
+				,CreationTime
+				,LastUpdatedTime
+				,FirstName
+				,LastName
+				,Tel
+				,Email
+				,EmailConfirmed
+				,IsActive)
 
-			VALUES	   (@UserId,
-						@UserName,
-						@HashPassWord,
-						@LastPasswordUpdatedTime,
-						@PasswordExpirationTime,
-						@UserRole,
-						@CreatedTime,
-						@LastUpdatedTime,
-						@FirstName,
-						@LastName,
-						@Tel,
-						@Email,
-						@EmailConfirmed,
-						@IsActive)
+	VALUES	    (@UserName
+			    ,@HashPassWord
+			    ,GetDate()
+			    ,@FutureExpirationTime
+			    ,@UserRole
+			    ,GetDate()
+			    ,NULL
+			    ,@FirstName
+			    ,@LastName
+			    ,@Tel
+			    ,@Email
+			    ,0
+			    ,1);
 
-			PRINT 'Last Statement in the TRY block'
-		COMMIT TRAN
-	END TRY
-	BEGIN CATCH
-		PRINT('Error! Cannot Insert a NULL Value into the "UserData" Table')
-			IF(@@TRANCOUNT > 0)
-				ROLLBACK TRAN;
-
-			THROW; -- raise error to the client
-	END CATCH
-	PRINT 'After END CATCH'
+END TRY
+BEGIN CATCH
+	SET @ErrMsg = ERROR_MESSAGE();
+	RAISERROR(@ErrMsg,16,1);
+END CATCH
+END
 GO
 -------------------------------------------------------------------------
 USE [GalconDB]
 GO
-CREATE OR ALTER PROCEDURE dbo.Dyn_User_Update
-	@UserId						varchar(20),
-	@UserName					varchar(20),
-	@HashPassWord				varchar(64),
-	@OldPassword				varchar(64) = NULL,
-	@LastPasswordUpdatedTime	dateTime,
-	@PasswordExpirationTime		dateTime,
-	@UserRole					int,
-    @LastUpdatedTime			dateTime,
-    @FirstName					varchar(30),
-	@LastName					varchar(30),
-    @Tel						varchar(15),
-	@Email						varchar(320),
-	@EmailConfirmed				bit,
-	@IsActive					bit
+/*
+--Description: Update User
+--Created: Ofek Itzhaki, "2023-02-24"
+--Execution Example:
+	EXEC [dbo].[Dyn_User_Update]
+			   (@UserName					= 'User'
+			   ,@HashPassWord				= 'Password'
+			   ,@OldPassword				= 'Old'
+			   ,@LastPasswordUpdatedTime	= GetDate()
+			   ,@PasswordExpirationTime		= GetDAte()
+			   ,@UserRole					= 1
+			   ,@LastUpdatedTime			= GetDate()
+			   ,@FirstName					= 'First'
+			   ,@LastName					= 'Last'
+			   ,@Tel						= '0548473849'
+			   ,@Email						= 'this@gmail.com'
+			   ,@EmailConfirmed				= 0
+			   ,@IsActive					= 1);					
+	SELECT * FROM [dbo].[Dyn_User] WITH(nolock) WHERE UserId = @UserId;
+*/
+CREATE OR ALTER PROCEDURE [dbo].[Dyn_User_Update]
+	(@UserId					int
+	,@UserName					varchar(20)		= NULL
+	,@HashPassWord				varchar(64)		= NULL			
+	,@OldPassword				varchar(64)		= NULL
+	,@PasswordExpirationTime	dateTime		= NULL			
+	,@UserRole					int				= NULL	
+    ,@FirstName					varchar(30)		= NULL			
+	,@LastName					varchar(30)		= NULL			
+    ,@Tel						varchar(15)		= NULL			
+	,@Email						varchar(320)	= NULL				
+	,@EmailConfirmed			bit				= NULL	
+	,@IsActive					bit				= NULL)
 AS
-	PRINT 'BEFORE TRY'
-	BEGIN TRY
-			PRINT 'First Statement in the TRY block'
+BEGIN
+BEGIN TRY
+	SET NOCOUNT ON;
+	DECLARE	@ErrMsg varchar(1000) = '';
+	Declare @TempPasswordUpdatedTime AS datetime
 
-			UPDATE	dbo.Dyn_User
-			SET		UserName				= @UserName,
-					HashPassWord			= @HashPassWord,
-					LastPasswordUpdatedTime = @LastPasswordUpdatedTime,
-					PasswordExpirationTime	=  @PasswordExpirationTime,
-					UserRole				= @UserRole,
-					LastUpdatedTime			= @LastUpdatedTime,
-					FirstName				= @FirstName,
-					LastName				= @LastName,
-					Tel						= @Tel,
-					Email					= @Email,
-					EmailConfirmed			= @EmailConfirmed,
-					IsActive				= @IsActive
+	SET @TempPasswordUpdatedTime =  CASE WHEN @OldPassword IS NOT NULL
+										THEN GetDate() ELSE @PasswordExpirationTime
+									END
 
-			WHERE	UserId = @UserId
-			AND		(@OldPassword IS NULL OR (@OldPassword IS NOT NULL AND HashPassWord = @OldPassword))
+	UPDATE	[dbo].[Dyn_User]
+	SET		 UserName					= ISNULL(@UserName,					UserName)
+			,HashPassWord				= ISNULL(@HashPassWord,				UserName)
+			,LastPasswordUpdatedTime	= @TempPasswordUpdatedTime
+			,PasswordExpirationTime		= ISNULL(@PasswordExpirationTime,	PasswordExpirationTime)
+			,UserRole					= ISNULL(@UserRole,					UserRole)
+			,LastUpdatedTime			= GetDate()
+			,FirstName					= ISNULL(@FirstName,				FirstName)
+			,LastName					= ISNULL(@LastName,					LastName)
+			,Tel						= ISNULL(@Tel,						Tel)
+			,Email						= ISNULL(@Email,					Email)
+			,EmailConfirmed				= ISNULL(@EmailConfirmed,			EmailConfirmed)
+			,IsActive					= ISNULL(@IsActive,					IsActive)
 
-			PRINT 'Last Statement in the TRY block'
-	END TRY
-	BEGIN CATCH
-		PRINT('Error! Cannot Update a NULL Value into the "UserData" table')
-	END CATCH
-	PRINT 'After END CATCH'
+	WHERE	 UserId = @UserId
+	AND		(@OldPassword IS NULL OR (@OldPassword IS NOT NULL AND HashPassWord = @OldPassword));
+
+END TRY
+BEGIN CATCH
+	SET @ErrMsg = ERROR_MESSAGE();
+	RAISERROR(@ErrMsg,16,1);
+END CATCH
+END
 GO
 -------------------------------------------------------------------------
 USE [GalconDB]
 GO
-CREATE OR ALTER PROCEDURE dbo.Dyn_User_Delete
-	@UserId varchar(20)
+/*
+--Description: Delete User
+--Created: Ofek Itzhaki, "2023-02-24"
+--Execution Example:
+	EXEC [dbo].[Dyn_User_Delete] @UserId = 1;
+*/
+CREATE OR ALTER PROCEDURE [dbo].[Dyn_User_Delete]
+	@UserId int
 AS
-	PRINT 'BEFORE TRY'
-	BEGIN TRY
-		BEGIN TRAN
-			PRINT 'First Statement in the TRY block'
+BEGIN
+BEGIN TRY
+	SET NOCOUNT ON;
+	DECLARE	@ErrMsg varchar(1000) = '';
 
-			DELETE FROM dbo.Dyn_User
-			WHERE  UserId = @UserId
+	DELETE FROM [dbo].[Dyn_User]
+	WHERE		UserId = @UserId;
 
-			PRINT 'Last Statement in the TRY block'
-		COMMIT TRAN
-	END TRY
-	BEGIN CATCH
-		PRINT('Error! Cannot Delete a NULL Value from the "UserData" Table')
-			IF(@@TRANCOUNT > 0)
-				ROLLBACK TRAN;
-
-			THROW; -- raise error to the client
-	END CATCH
-	PRINT 'After END CATCH'
+END TRY
+BEGIN CATCH
+	SET @ErrMsg = ERROR_MESSAGE();
+	RAISERROR(@ErrMsg,16,1);
+END CATCH
+END
 GO
--------------------------------------------------------------------------
 -------------------------------------------------------------------------
