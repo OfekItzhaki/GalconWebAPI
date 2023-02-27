@@ -76,18 +76,35 @@ namespace GalconWebAPI.Services
         public bool Register(User.CreateUser user)
         {
             // validate
-            var tempAccount = _dataService.GetUserData(user.UserName, DataType.UserName);
-            if (tempAccount.UserName == user.UserName)
-                throw new Exception("Username '" + user.UserName + "' already exists!");
 
-            var tempData = _dataService.GetUserData(user.Email, DataType.Email);
-            if (tempData.Email == user.Email)
-                throw new Exception("Email '" + user.Email + "' already exists");
+            try
+            {
+                var tempAccount = _dataService.GetUserData(user.UserName, DataType.UserName);
+                if (tempAccount.UserName == user.UserName)
+                    throw new Exception("Username '" + user.UserName + "' already exists!");
 
-            tempData = _dataService.GetUserData(user.Tel, DataType.Tel);
-            if (tempData.Tel == user.Tel)
-                throw new Exception("Tel '" + user.Tel + "' already exists");
+                var tempData = _dataService.GetUserData(user.Email, DataType.Email);
+                if (tempData.Email == user.Email)
+                    throw new Exception("Email '" + user.Email + "' already exists");
 
+                tempData = _dataService.GetUserData(user.Tel, DataType.Tel);
+                if (tempData.Tel == user.Tel)
+                    throw new Exception("Tel '" + user.Tel + "' already exists");
+            }
+            catch (Exception err)
+            {
+                throw new Exception(err.Message);
+            }
+
+            var hashPassword = HashService.ComputeSha256Hash(user.Password);
+            user =  new User.CreateUser(
+                                    user.UserName,
+                                    hashPassword,
+                                    user.FirstName,
+                                    user.LastName,
+                                    user.Tel,
+                                    user.Email
+                                    );
 
             var state = false;
             using (SqlConnection con = new SqlConnection(_config.GetConnectionString("DbConnectionString")))
@@ -103,6 +120,7 @@ namespace GalconWebAPI.Services
                 using (SqlCommand cmd = new SqlCommand("Dyn_User_Insert", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@UserId", SqlDbType.Int).Direction = ParameterDirection.Output;
                     cmd.Parameters.Add("@UserName", SqlDbType.VarChar).Value = user.UserName;
                     cmd.Parameters.Add("@HashPassWord", SqlDbType.VarChar).Value = user.Password;
                     cmd.Parameters.Add("@UserRole", SqlDbType.Int).Value = (int)user.UserRole;
@@ -113,6 +131,8 @@ namespace GalconWebAPI.Services
 
                     try
                     {
+                        //var userId = Convert.ToInt32(cmd.Parameters["UserId"].Value);
+
                         var reader = cmd.ExecuteNonQuery();
                         cmd.Dispose();
                         con.Close();

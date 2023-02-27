@@ -266,6 +266,7 @@ namespace GalconWebAPI.Services
                 using (SqlCommand cmd = new SqlCommand("Dyn_Product_Insert", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@ProductId", SqlDbType.Int).Direction = ParameterDirection.Output;
                     cmd.Parameters.Add("@ProductBarcode", SqlDbType.VarChar).Value = product.ProductBarcode;
                     cmd.Parameters.Add("@ProductName", SqlDbType.VarChar).Value = product.ProductName;
                     cmd.Parameters.Add("@ProductDescription", SqlDbType.VarChar).Value = product.ProductDescription;
@@ -273,6 +274,8 @@ namespace GalconWebAPI.Services
 
                     try
                     {
+                        //var productId = Convert.ToInt32(cmd.Parameters["ProductId"].Value);
+
                         var reader = cmd.ExecuteNonQuery();
                         cmd.Dispose();
                         con.Close();
@@ -307,10 +310,10 @@ namespace GalconWebAPI.Services
                     cmd.Parameters.Add("@OrderName", SqlDbType.VarChar).Value = order.OrderName;
                     cmd.Parameters.Add("@UserId", SqlDbType.Int).Value = order.UserId;
 
-                    //var orderId = Convert.ToInt32(cmd.Parameters["OrderId"].Value);
-
                     try
                     {
+                        //var orderId = Convert.ToInt32(cmd.Parameters["OrderId"].Value);
+
                         var reader = cmd.ExecuteNonQuery();
                         cmd.Dispose();
                         con.Close();

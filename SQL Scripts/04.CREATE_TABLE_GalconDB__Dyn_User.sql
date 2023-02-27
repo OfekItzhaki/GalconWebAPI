@@ -22,6 +22,8 @@ CREATE TABLE [dbo].[Dyn_User]
 
 		,CONSTRAINT PK_Dyn_User_Id			PRIMARY KEY CLUSTERED(UserId)
 		,CONSTRAINT UK_Dyn_User_UserName	UNIQUE		NONCLUSTERED(UserName)
+		,CONSTRAINT UK_Dyn_User_Tel			UNIQUE		NONCLUSTERED(Tel)
+		,CONSTRAINT UK_Dyn_User_Email		UNIQUE		NONCLUSTERED(Email)
 	);
 GO
 ------------------------------------------------------------------------- 
